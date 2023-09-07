@@ -9,7 +9,7 @@ read profundidad
 echo 'Running the program'
 ./arbol $profundidad &
 
-root_pid=$(ps -eo pid,comm | grep arbol | head -n 1 | awk '{print $1}')
+#root_pid=$(ps -eo pid,comm | grep arbol | head -n 1 | awk '{print $1}')
 
-echo -e '\nFirst list of processes'
-pstree -cp $root_pid
+#echo -e '\nFirst list of processes'
+#pstree -p $root_pid
