@@ -27,7 +27,7 @@ int main(int argc, char const *argv[]){
             break;
         }
     }
-
+    
     if(getpid()!=root){
         if(j==0){
             exit(1);
