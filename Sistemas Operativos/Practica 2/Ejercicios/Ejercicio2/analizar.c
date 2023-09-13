@@ -43,12 +43,12 @@ int main(int argc, char const *argv[]){
     }
 
     //wait
-
-    printf("\nNumero de directorios encontrados %d\n",dir_count);
-
-    system("");
-
-    closedir(dir);
+    int i,v;
+    for(i=0;i<dir_count;i++){
+        wait(&v);
+        printf("\nNumero de directorios encontrados %d\n",dir_count);
+        closedir(dir);
+    }
 
     return 0;
 }
