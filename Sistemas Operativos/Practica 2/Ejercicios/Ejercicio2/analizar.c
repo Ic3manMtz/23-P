@@ -1,6 +1,8 @@
 #include<stdio.h>
+#include<stdlib.h>
 #include<sys/stat.h>
 #include<dirent.h>
+#include<string.h>
 
 int mostrarMetaDatos(char*);
 
@@ -24,42 +26,44 @@ int main(int argc, char const *argv[]){
     }
 
     while ((ent = readdir(dir)) != NULL) {
-        switch (ent->d_type) {
-        case DT_REG:
-            file_count++;
-            printf("\nFile name %s", ent->d_name);
-            mostrarMetaDatos(ent->d_name);
-            break;
-
-        case DT_DIR:
+        if(ent->d_type == DT_REG){
+            char file_path[256];
+            int result = snprintf(file_path, sizeof(file_path), "%.*s/%s", (int)(sizeof(file_path) - strlen(directorio) - 1), directorio, ent->d_name);
+            mostrarMetaDatos(file_path);
+        }
+        
+        if(ent->d_type == DT_DIR){
             dir_count++;
-            break;
+            char file_path[256];
+            int result = snprintf(file_path, sizeof(file_path), "%.*s/%s", (int)(sizeof(file_path) - strlen(directorio) - 1), directorio, ent->d_name);
+            printf("\nRuta del directorio %s \n",file_path);
 
-        default:
-            break;
+            //fork();
         }
     }
+
+    //wait
+
+    printf("\nNumero de directorios encontrados %d\n",dir_count);
+
+    system("");
 
     closedir(dir);
 
     return 0;
 }
 
-
 int mostrarMetaDatos(char* archivo){
-                printf("\nFile name in mostraraMetaDatos%s", archivo);
-
     struct stat fileStat;
     if(stat(archivo,&fileStat) < 0)    
         return 1;
 
-    printf("Information for %s\n","test.txt");
-    printf("---------------------------\n");
-    printf("File Size: \t\t%ld bytes\n",fileStat.st_size);
-    printf("Number of Links: \t%ld\n",fileStat.st_nlink);
-    printf("File inode: \t\t%ld\n",fileStat.st_ino);
+    printf("\nMetadatos del archivo %s\n",archivo);
+    printf("\tTamaño: \t\t%ld bytes\n",fileStat.st_size);
+    printf("\tNumero de Links: \t%ld\n",fileStat.st_nlink);
+    printf("\tIdentificador inode: \t\t%ld\n",fileStat.st_ino);
 
-    printf("File Permissions: \t");
+    printf("\tPermisos: \t");
     printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
     printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
     printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
@@ -71,6 +75,5 @@ int mostrarMetaDatos(char* archivo){
     printf( (fileStat.st_mode & S_IWOTH) ? "w" : "-");
     printf( (fileStat.st_mode & S_IXOTH) ? "x" : "-");
     printf("\n\n");
-
-    printf("The file %s a symbolic link\n", (S_ISLNK(fileStat.st_mode)) ? "is" : "is not");
+    return 0;
 }

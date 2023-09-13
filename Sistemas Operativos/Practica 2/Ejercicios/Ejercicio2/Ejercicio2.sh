@@ -12,7 +12,7 @@ then
     echo -e '\nEjecutando programa analizar'
     ./analizar $directorio
 else
-    echo "El directorio ${DIRECTORIO} no existe"
+    echo "El directorio ${DIRECTORIO} no existe, intenta de nuevo"
 fi
 
 
