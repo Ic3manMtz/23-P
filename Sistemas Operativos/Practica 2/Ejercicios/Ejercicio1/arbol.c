@@ -4,6 +4,8 @@
 #include <signal.h>
 #include <sys/wait.h>
 
+void createChildren(int);
+
 int main(int argc, char const *argv[]){
     if(argc!=2){
         printf("\n\tSe requiere la profundidad para ejecutar el programa\n");
