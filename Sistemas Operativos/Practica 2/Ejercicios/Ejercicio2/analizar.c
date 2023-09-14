@@ -1,55 +1,77 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<sys/stat.h>
-#include<dirent.h>
-#include<string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 int mostrarMetaDatos(char*);
 
 int main(int argc, char const *argv[]){
-    DIR *dir;
-    struct dirent *ent;
-    int file_count = 0;
-    int dir_count = 0;
-
+    //Validamos el parámetro del programa
     if (argc != 2) {
         printf("Directorio no proporcionado, intenta de nuevo.\n");
         return 1;
     }
 
-    const char *directorio = argv[1];
+    //Guardamos el directorio ingresa en la variable directory
+    const char *userInput = argv[1];
+    char directory[256];
+    strcpy(directory,userInput);
 
-    dir = opendir(directorio);
-    if (dir == NULL) {
-        printf("Could not open directory.\n");
+    //Abrimos el directorio ingresado
+    DIR *dir;
+    dir=opendir(directory);
+    if(dir==NULL){
+        printf("\n\tNo se pudo abrir el directorio ingresado, intente de nuevo");
         return 1;
     }
 
-    while ((ent = readdir(dir)) != NULL) {
-        if(ent->d_type == DT_REG){
-            char file_path[256];
-            int result = snprintf(file_path, sizeof(file_path), "%.*s/%s", (int)(sizeof(file_path) - strlen(directorio) - 1), directorio, ent->d_name);
-            mostrarMetaDatos(file_path);
-        }
-        
-        if(ent->d_type == DT_DIR){
-            dir_count++;
-            char file_path[256];
-            int result = snprintf(file_path, sizeof(file_path), "%.*s/%s", (int)(sizeof(file_path) - strlen(directorio) - 1), directorio, ent->d_name);
-            printf("\nRuta del directorio %s \n",file_path);
+    //Leemos el primer archivo del directorio
+    struct dirent *ent;
+    ent=readdir(dir);
+    int dir_count=0;
 
-            //fork();
+    pid_t root=getpid();
+
+    while(ent!=NULL){
+        if(strcmp(ent->d_name,".")!=0 && strcmp(ent->d_name,"..")!=0){
+            if(ent->d_type == DT_REG){
+                char file_path[256];
+                int result = snprintf(file_path, sizeof(file_path), "%.*s/%s", (int)(sizeof(file_path) - strlen(directory) - 1), directory, ent->d_name);
+                mostrarMetaDatos(file_path);
+            }
+            if(ent->d_type == DT_DIR){
+                dir_count++;
+                char file_path[256];
+                int result = snprintf(file_path, sizeof(file_path), "%.*s/%s", (int)(sizeof(file_path) - strlen(directory) - 1), directory, ent->d_name);
+
+                pid_t pid = fork();
+                if(pid==0){
+                    strcpy(directory,file_path);
+                    dir=opendir(directory);
+                    ent=readdir(dir);
+                    continue;
+                }
+            }
         }
+        ent=readdir(dir);
+    }    
+
+    if(getpid()!=root){
+        exit(1);
     }
 
-    //wait
     int i,v;
     for(i=0;i<dir_count;i++){
         wait(&v);
-        printf("\nNumero de directorios encontrados %d\n",dir_count);
-        closedir(dir);
     }
 
+    closedir(dir);
+
+    exit(1);
     return 0;
 }
 
@@ -61,7 +83,7 @@ int mostrarMetaDatos(char* archivo){
     printf("\nMetadatos del archivo %s\n",archivo);
     printf("\tTamaño: \t\t%ld bytes\n",fileStat.st_size);
     printf("\tNumero de Links: \t%ld\n",fileStat.st_nlink);
-    printf("\tIdentificador inode: \t\t%ld\n",fileStat.st_ino);
+    printf("\tIdentificador inode: \t%ld\n",fileStat.st_ino);
 
     printf("\tPermisos: \t");
     printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
