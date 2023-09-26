@@ -6,13 +6,16 @@ import java.util.Scanner;
 public class Peer{
 	private static final String HOST="localhost";
 	private static final int PUERTO=6000;
+	private static int numero;
+	private static int suma;
 
 	public static void main(String[] args) throws IOException{
 		int id=Integer.parseInt(args[0]);
 		int TOTAL=Integer.parseInt(args[1]);
 		int PUERTO_ID=PUERTO+id;
 		int VECINO=((id+1)%TOTAL)+PUERTO;
-		int number=new Random().nextInt(100);
+		numero=new Random().nextInt(100);
+		suma=numero;
 
 		//Modo Servidor
 		try(ServerSocket serverSocket=new ServerSocket(PUERTO_ID)){
@@ -32,8 +35,8 @@ public class Peer{
 				BufferedReader in=new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
 				for(int i=0; i<TOTAL-1; i++){
-					System.out.println("Cliente["+id+"]: Enviando número "+number);
-					out.println(number);
+					System.out.println("Cliente["+id+"]: Enviando número "+numero);
+					out.println(suma);
 				}
 
 			}
@@ -45,9 +48,10 @@ public class Peer{
 
 			String mensaje;
 			while((mensaje=in.readLine())!=null){
-				System.out.println("Servidor["+PUERTO_ID+"]: Recibí el número "+mensaje+" Numero: "+number);
-				number+=Integer.parseInt(mensaje);
-				out.println(number);
+				System.out.println("Servidor["+PUERTO_ID+"]: Recibí el número "+mensaje+" Numero: "+numero);
+				int numeroRecibido=Integer.parseInt(mensaje);
+				suma+=numeroRecibido;
+				out.println(suma++);
 			}
 		}
 	}
