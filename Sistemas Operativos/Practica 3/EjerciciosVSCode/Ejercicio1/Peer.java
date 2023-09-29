@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class Peer {
     private static final String HOST = "localhost";
@@ -13,12 +12,13 @@ public class Peer {
         int PUERTO_ID = PUERTO + id;
         int VECINO = ((id + 1) % TOTAL) + PUERTO;
 		int numeroGenerado = new Random().nextInt(100)+1;
-        int numeroRecibido
-        ;
+        int numeroRecibido=0;
+        boolean firstStep=true;
+        int suma=0;
 
         // Modo Servidor
         try (ServerSocket serverSocket = new ServerSocket(PUERTO_ID)) {
-            System.out.println("Servidor[" + PUERTO_ID + "]: Escuchando en el puerto " + PUERTO_ID);
+            System.out.println("Servidor[" + PUERTO_ID + "]: Escuchando en el puerto " + PUERTO_ID+", Numero generado: "+numeroGenerado);
 
             try {
                 Thread.sleep(3000);
@@ -28,29 +28,30 @@ public class Peer {
 
             System.out.println("Puerto: " + PUERTO_ID + " Vecino: " + VECINO);
 
-            // Modo cliente
-            try (Socket clientSocket = new Socket(HOST, VECINO)) {
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-				boolean firstStep=true;
-                for (int i = 0; i < TOTAL; i++) {
-					if(firstStep){
-						out.println(numeroGenerado);
-						System.out.println("Cliente[" + id + "]: Enviando número " + numeroGenerado);
-						firstStep=false;
-					}else {
+            for(int i=0; i<TOTAL; i++){
+                // Modo cliente
+                try (Socket clientSocket = new Socket(HOST, VECINO)) {
+                    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                    if(firstStep){
+                        out.println(numeroGenerado);
+                        System.out.print("\nCliente[" + id + "]: Enviando número " + numeroGenerado);
+                        firstStep=false;
+                    }else {
                         out.println(numeroRecibido);
-                        System.out.println("Cliente[" + id + "]: Enviando número " + numeroRecibido);
+                        System.out.print("\nCliente[" + id + "]: Enviando número " + numeroRecibido);
                     }
+
                 }
+                            
+                Socket clientSocket = serverSocket.accept();
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                String mensaje = in.readLine();
+                System.out.print("\nServidor[" + PUERTO_ID + "]: Recibí el número " + mensaje);
+                numeroRecibido=Integer.parseInt(mensaje,10);
+                suma+=numeroRecibido;
             }
-						
-			Socket clientSocket = serverSocket.accept();
-			BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			for (int i = 0; i < TOTAL; i++) {
-				String mensaje = in.readLine();
-				System.out.println("Servidor[" + PUERTO_ID + "]: Recibí el número " + mensaje);
-				numeroRecibido=Integer.parseInt(mensaje,10);
-			}
+
+            System.out.print("\nServidor[" + PUERTO_ID + "]: La suma total de los números recibidos es: "+suma );
         }
     }
 }
