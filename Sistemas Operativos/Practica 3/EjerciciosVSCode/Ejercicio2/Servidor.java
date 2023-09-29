@@ -1,37 +1,68 @@
+// Servidor
 import java.io.*;
 import java.net.*;
 
-public class Servidor{
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+public class Servidor implements Runnable {
+    static final int PUERTO = 12345;
+    Socket s;
 
-    public void start(int port) throws IOException{
-        serverSocket = new ServerSocket(port);
-        System.out.println("Servidor escuchando en el puerto 6000...");
-        clientSocket = serverSocket.accept();
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            if (".".equals(inputLine)) {
-                out.println("good bye");
-                break;
-            }
-            out.println(inputLine);
+    public Servidor(){
+        try{
+            initServidor();
+        }catch(Exception e){
+            System.out.println("Error en el servidor: "+e.getMessage());
         }
     }
 
-    public void stop() throws IOException{
-        in.close();
-        out.close();
-        clientSocket.close();
-        serverSocket.close();
+    public Servidor(Socket s) {
+        this.s=s;
     }
-    public static void main(String[] args) throws IOException{
-        Servidor server=new Servidor();
-        server.start(6000);
+
+    //SERVIDOR
+    public void initServidor() throws Exception {
+        ServerSocket sc;
+        Socket so;
+
+        try (ServerSocket serverSocket = new ServerSocket(PUERTO)) {
+            System.out.println("\t[Servidor] Servidor iniciado correctamente");
+            while(true) {
+                System.out.println("\n[Servidor] Esperando una conexion:");
+                so = serverSocket.accept();
+                Servidor hilo = new Servidor(so);
+                Thread tcliente = new Thread(hilo);
+                tcliente.start();
+                
+                //Inicia el socket, ahora esta esperando una conexion por parte del cliente
+                System.out.println("[Servidor] Un cliente se ha conectado.");
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        //Canales de entrada y salida de datos
+        PrintWriter salida=null;
+        String mensajeRecibido="";
+        BufferedReader entrada=null;
+
+        try {
+            entrada = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            salida = new PrintWriter(s.getOutputStream(), true);
+            
+            System.out.println("[Servidor] Confirmando conexion al cliente....");
+            String mensajeCliente = entrada.readLine();
+            System.out.println("[Servidor] Recibido del cliente: " + mensajeCliente);
+            System.out.println(mensajeRecibido);
+            salida.println("[Servidor] Hola, Cliente! Recibí tu mensaje: " + mensajeCliente);
+            System.out.println("[Servidor] Cerrando conexion...");
+            s.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) throws IOException {        
+        Servidor s = new Servidor();
     }
 }

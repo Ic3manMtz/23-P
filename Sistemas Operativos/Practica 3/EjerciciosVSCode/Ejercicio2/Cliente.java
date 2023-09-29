@@ -1,26 +1,22 @@
+// Cliente.java
 import java.io.*;
 import java.net.*;
 
-public class Cliente{
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+public class Cliente {
+    public static void main(String[] args) throws IOException {
+        final String DIRECCION_SERVIDOR = "localhost";
+        final int PUERTO = 12345;
 
-    public void startConnection(String ip, int port) throws IOException{
-        clientSocket = new Socket(ip, port);
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-    }
+        try (Socket socket = new Socket(DIRECCION_SERVIDOR, PUERTO)) {
+            PrintWriter salida = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-    public String sendMessage(String msg) throws IOException{
-        out.println(msg);
-        String resp = in.readLine();
-        return resp;
-    }
+            String mensaje = "Hola, Servidor!";
+            salida.println(mensaje);
+            System.out.println("[Cliente] Mensaje enviado al servidor: " + mensaje);
 
-    public void stopConnection() throws IOException{
-        in.close();
-        out.close();
-        clientSocket.close();
+            String respuestaServidor = entrada.readLine();
+            System.out.println("[Cliente] Respuesta del servidor: " + respuestaServidor);
+        }
     }
 }
