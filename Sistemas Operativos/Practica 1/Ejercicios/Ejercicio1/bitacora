@@ -1,13 +1,37 @@
 Bitacora de usuarios
 
 Consulta 1
-Fecha y hora de consulta: August 35 14:06:35.084
+Fecha y hora de consulta: October 40 11:08:26.413
 
-jorgemartinez
 USER
+daemon
+ic3manlinux
+messagebus
+root
+syslog
+systemd-network
+systemd-resolve
 
 Consulta 2
-Fecha y hora de consulta: August 35 14:06:36.099
+Fecha y hora de consulta: October 40 11:08:27.457
 
-jorgemartinez
 USER
+daemon
+ic3manlinux
+messagebus
+root
+syslog
+systemd-network
+systemd-resolve
+
+Consulta 3
+Fecha y hora de consulta: October 40 11:08:28.495
+
+USER
+daemon
+ic3manlinux
+messagebus
+root
+syslog
+systemd-network
+systemd-resolve
