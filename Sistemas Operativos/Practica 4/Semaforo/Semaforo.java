@@ -1,27 +1,34 @@
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
 public class Semaforo {
-    private ConcurrentLinkedQueue<Thread> cola = new ConcurrentLinkedQueue<>();
     private final AtomicInteger estado;
+    private ConcurrentLinkedQueue<Thread> cola = new ConcurrentLinkedQueue<>();
+    @SuppressWarnings("unused")
+    private Thread propietario=null;
     
     public Semaforo(int valor){
         if(valor<0){
             throw new IllegalArgumentException("El valor inicial del semáforo no puede ser negativo");
         }
-        this.recursos=new AtomicInteger(valor);
+        this.estado=new AtomicInteger(valor);
     }
 
     public void sem_wait(){
-        while(estado.get()==0){
+        Thread hilo = Thread.currentThread();
+        cola.add(hilo);
+
+        while(cola.peek() != hilo || estado.get()<=0){
             LockSupport.park();
         }
 
         estado.decrementAndGet();
+        propietario=cola.remove();
     }
 
-    public void sem_signal(){
+    public void sem_post(){
         estado.incrementAndGet();
-        LockSupport.unpark(Thread.currentThread());
+        LockSupport.unpark(cola.peek());
     }
 }
