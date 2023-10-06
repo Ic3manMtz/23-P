@@ -10,6 +10,7 @@ void manejador(int sig){
             break;
         case SIGSTOP:         
             printf("Evento: SIGSTOP\n");
+            break;
         case SIGTSTP:
             printf("Evento: SIGTSTP\n");
             break;
@@ -24,7 +25,6 @@ int main(){
         printf("\nNo se puede cachar la senial: SIGSTOP\n");
     if (signal(SIGTSTP, manejador) == SIG_ERR)
         printf("\nNo se puede cachar la senial: SIGSTOP\n");
-
 
     while(1) {
         printf("Proceso %d Hola!\n",getpid());
