@@ -1,0 +1,8 @@
+/* estilos.css */
+.formulario-container {
+    display: flex;
+}
+
+.formulario {
+    margin-right: 20px;
+}
