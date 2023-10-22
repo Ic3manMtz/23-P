@@ -13,25 +13,45 @@ public class Cliente {
             PrintWriter salida = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             scanner = new Scanner(System.in);
-            String respuestaServidor;
+            String mensajeRecibido, mensajeEnviado;
+
             do{
                 System.out.println("[C] Ingresa tu nickname...");
-                String mensaje = scanner.nextLine();
-                salida.println(mensaje);
-                System.out.println("[C] Mensaje enviado al servidor: " + mensaje);
+                mensajeEnviado=scanner.nextLine();
+                salida.println(mensajeEnviado);
+                System.out.println("[C] Mensaje enviado al servidor: " + mensajeEnviado);
 
-                respuestaServidor = entrada.readLine();
-                System.out.println("\n[C] Respuesta del servidor: " + respuestaServidor);
-            }while(respuestaServidor.equals("false"));
+                mensajeRecibido=entrada.readLine();
+            }while(mensajeRecibido.equals("false"));
 
-            salida.println("menu");
-            respuestaServidor = entrada.readLine();
-            System.out.println(respuestaServidor);
-            String respuestaMenu = scanner.nextLine();
-            salida.println(respuestaMenu);
+            do{
+                while ((mensajeRecibido = entrada.readLine()) != null) {
+                System.out.println(mensajeRecibido);
 
-            String resultado = entrada.readLine();
-            System.out.println(respuestaMenu+" = "+resultado);
+                    if(mensajeRecibido.contains("Salir")){
+                        break;
+                    }
+                }
+            
+                while(true){
+                    mensajeEnviado=scanner.nextLine();
+                    salida.println(mensajeEnviado);
+                    mensajeRecibido=entrada.readLine();
+
+                    if(mensajeRecibido.contains("Operación inválida")){
+                        System.out.println(mensajeRecibido);
+                        continue;
+                    }else{
+                        System.out.println(mensajeRecibido);
+                        break;
+                    }
+                }
+
+                String operandos = scanner.nextLine();
+                salida.println(operandos);
+                String resultado = entrada.readLine();
+                System.out.println(resultado);
+            }while(!mensajeRecibido.contains("desconectado"));
         }
         
         scanner.close();

@@ -8,7 +8,7 @@ import java.util.Collections;
 public class Servidor implements Runnable {
     static final int PUERTO = 12345;
     Socket s;
-    static Set<String> mensajes = Collections.synchronizedSet(new LinkedHashSet<>());
+    static Set<String> usuarios = Collections.synchronizedSet(new LinkedHashSet<>());
 
     public Servidor(){
         try{
@@ -45,18 +45,20 @@ public class Servidor implements Runnable {
     public void run() {
         //Canales de entrada y salida de datos
         PrintWriter salida=null;
-        String mensajeRecibido="";
         BufferedReader entrada=null;
+        String mensaje;
+        String newLine=System.getProperty("line.separator");
+
 
         try {
-            entrada = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            salida = new PrintWriter(s.getOutputStream(), true);
+            entrada=new BufferedReader(new InputStreamReader(s.getInputStream()));
+            salida=new PrintWriter(s.getOutputStream(), true);
             
             System.out.println("[S] Confirmando conexion al cliente....");
             String nickname;
             while(true){
-                nickname = entrada.readLine();
-                if(mensajes.add(nickname)){
+                nickname=entrada.readLine();
+                if(usuarios.add(nickname)){
                     System.out.println("[S] Cliente agregado correctamente");
                     salida.println("true");
                     break;
@@ -65,51 +67,72 @@ public class Servidor implements Runnable {
                     salida.println("false");
                 }
             }
-
-            String mensaje = entrada.readLine();
-            if(mensaje.equals("menu")){
-                salida.println("[S:"+nickname+"] Bienvenido, las operaciones que puedes realizar son:\n\t-Sumar\n\t-Multiplicar\n\t-Restar\n\t-Dividir\nPara indicar una operacion escribe el nombre de la operacion seguida por los operandos");
+            
+            while (true) {
+                salida.println("[S:"+nickname+"] Bienvenido, las operaciones que puedes realizar son:"+newLine+"\t1.-Sumar"+newLine+"\t2.-Multiplicar"+newLine+"\t3.-Restar"+newLine+"\t4.-Dividir"+newLine+"\t5.-Salir");
+                mensaje=entrada.readLine();
+                    
+                switch (mensaje) {
+                    case "1":
+                        salida.println("[S:"+nickname+"] Ingresa los numeros a sumar separados por una coma");
+                        String[] operandosSuma = entrada.readLine().split(",");
+                        int resultadoSuma = sumar(operandosSuma);
+                        salida.println("[S:"+nickname+"] Resultado suma: " + resultadoSuma);
+                    break;
+                    case "2":
+                        salida.println("[S:"+nickname+"] Ingresa los numeros a multiplicar separados por una coma");
+                        String[] operandosMultiplicacion = entrada.readLine().split(",");
+                        int resultadoMultiplicacion = multiplicar(operandosMultiplicacion);
+                        salida.println("[S:"+nickname+"] Resultado multiplicación: " + resultadoMultiplicacion);
+                    break;
+                    case "3":
+                        salida.println("[S:"+nickname+"] Ingresa los números a restar separados por una coma");
+                        String[] operandosResta = entrada.readLine().split(",");
+                        
+                        if (operandosResta.length == 2) {
+                            int num1 = Integer.parseInt(operandosResta[0]);
+                            int num2 = Integer.parseInt(operandosResta[1]);
+                            int resultadoResta = restar(num1, num2);
+                            salida.println("[S:"+nickname+"] Resultado resta: " + resultadoResta);
+                        } else {
+                            salida.println("[S:"+nickname+"] Debes ingresar exactamente dos números separados por una coma.");
+                        }
+                    break;
+                    case "4":
+                    salida.println("[S:" + nickname + "] Ingresa los números a dividir separados por una coma");
+                    String[] operandosDivision = entrada.readLine().split(",");
+                    
+                    if (operandosDivision.length == 2) {
+                        int num1 = Integer.parseInt(operandosDivision[0]);
+                        int num2 = Integer.parseInt(operandosDivision[1]);
+                    
+                        if (num2 != 0) {
+                            double resultadoDivision = dividir(num1, num2);
+                            salida.println("[S:"+nickname+"] Resultado división: " + resultadoDivision);
+                        } else {
+                            salida.println("[S:"+nickname+"] El segundo número no puede ser cero.");
+                        }
+                    } else {
+                        salida.println("[S:"+nickname+"] Debes ingresar exactamente dos números separados por una coma.");
+                    }
+                    
+                    case "5":
+                        usuarios.remove(nickname);
+                        salida.println("[S:"+nickname+"] Te has desconectado.");
+                        System.out.println("[S] Se ha desconectado el usuario "+nickname);
+                        s.close();
+                    return;
+                    default:
+                        salida.println("[S:"+nickname+"] Opción inválida. Intenta nuevamente.");
+                    break;
+                }
             }
-
-            String operacion = entrada.readLine();
-            if(operacion.startsWith("sumar")){
-                String[] operandos = operacion.split(" ");
-                int resultadoSuma = sumar(operandos);
-                salida.println(nickname + " Resultado suma: " + resultadoSuma);
-            }
-
-            // Ejemplo de multiplicación
-            operacion = entrada.readLine();
-            if(operacion.startsWith("multiplicar")){
-                String[] operandos = operacion.split(" ");
-                int resultadoMultiplicacion = multiplicar(operandos);
-                salida.println(nickname + " Resultado multiplicación: " + resultadoMultiplicacion);
-            }
-
-            // Ejemplo de resta
-            operacion = entrada.readLine();
-            if(operacion.startsWith("restar")){
-                String[] operandos = operacion.split(" ");
-                int resultadoResta = restar(Integer.parseInt(operandos[1]), Integer.parseInt(operandos[2]));
-                salida.println(nickname + " Resultado resta: " + resultadoResta);
-            }
-
-            // Ejemplo de división
-            operacion = entrada.readLine();
-            if(operacion.startsWith("dividir")){
-                String[] operandos = operacion.split(" ");
-                int resultadoDivision = dividir(Integer.parseInt(operandos[1]), Integer.parseInt(operandos[2]));
-                salida.println(nickname + " Resultado división: " + resultadoDivision);
-            }
-            //System.out.println("[S] Cerrando conexion...");
-            //s.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-    public int sumar(String[] operandos) {
+    private int sumar(String[] operandos) {
         int suma = 0;
         for(int i = 1; i < operandos.length; i++) {
             suma += Integer.parseInt(operandos[i]);
@@ -117,7 +140,7 @@ public class Servidor implements Runnable {
         return suma;
     }
 
-    public int multiplicar(String[] operandos) {
+    private int multiplicar(String[] operandos) {
         int multiplicacion = 1;
         for(int i = 1; i < operandos.length; i++) {
             multiplicacion *= Integer.parseInt(operandos[i]);

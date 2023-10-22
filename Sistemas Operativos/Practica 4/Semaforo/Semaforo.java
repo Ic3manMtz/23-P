@@ -19,11 +19,10 @@ public class Semaforo {
         Thread hilo = Thread.currentThread();
         cola.add(hilo);
 
-        while(cola.peek() != hilo || estado.get()<=0){
+        while(cola.peek()!=hilo && estado.decrementAndGet()<=0){
             LockSupport.park();
         }
 
-        estado.decrementAndGet();
         propietario=cola.remove();
     }
 
